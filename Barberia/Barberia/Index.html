@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BARBER SHOP — Cortes & Cuidado Masculino</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-[#0B0B0D] text-[#F4F4F5] antialiased selection:bg-[#D4AF37] selection:text-[#0B0B0D]">
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 z-40 border-b border-[#26262C] bg-[#0B0B0D]/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-lg bg-[#D4AF37] text-[#0B0B0D] flex items-center justify-center font-extrabold text-lg tracking-tighter transition-transform group-hover:scale-105">
+          BS
+        </div>
+        <div class="leading-none">
+          <span class="font-display font-extrabold tracking-wider text-base sm:text-lg text-white block">BARBER SHOP</span>
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#A1A1AA]">Studio & Grooming</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[#A1A1AA]">
+        <a href="#reservas" class="hover:text-white transition-colors">Reservar Turno</a>
+        <a href="#tienda" class="hover:text-white transition-colors">Productos</a>
+        <a href="#agenda-dia" class="hover:text-white transition-colors">Disponibilidad</a>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <span id="api-status-badge" class="hidden lg:inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-[#141417] border border-[#26262C] text-[#A1A1AA]">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="api-status-dot"></span>
+          <span id="api-status-text">Conectando...</span>
+        </span>
+
+        <button id="btn-admin-access" onclick="handleAdminButtonClick()" class="px-3 py-2 rounded-xl bg-[#141417] border border-[#26262C] hover:border-[#D4AF37]/60 text-xs font-medium text-[#A1A1AA] hover:text-white transition-colors flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-[#D4AF37]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+          </svg>
+          <span id="btn-admin-label">Acceso Admin</span>
+        </button>
+
+        <button onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-xl bg-[#141417] border border-[#26262C] hover:border-[#D4AF37]/60 text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"/>
+          </svg>
+          <span id="cart-count" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#D4AF37] text-[#0B0B0D] text-[11px] font-bold flex items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PANEL ADMINISTRADOR (SOLO AL INICIAR SESIÓN) -->
+  <section id="admin-panel" class="hidden border-b border-[#D4AF37]/40 bg-[#111115]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#26262C]">
+        <div>
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] text-[11px] font-semibold uppercase tracking-wider mb-1">
+            Modo Dueño / Administrador Activo
+          </div>
+          <h2 class="font-display text-2xl font-bold text-white">Panel de Gestión &amp; Inventario (CRUD)</h2>
+          <p class="text-xs text-[#A1A1AA] mt-0.5">Administra los productos en /Barberia y controla las reservas en /reservas.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="openProductModal()" class="px-4 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-xs transition-colors">
+            + Nuevo Producto
+          </button>
+          <button onclick="logoutAdmin()" class="px-4 py-2.5 rounded-xl bg-[#141417] border border-[#26262C] hover:border-red-500/50 text-xs text-[#A1A1AA] hover:text-red-400 transition-colors">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-[#26262C] bg-[#0B0B0D]">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-[#26262C] text-[11px] uppercase tracking-wider text-[#A1A1AA] bg-[#141417]">
+              <th class="py-3.5 px-4">ID</th>
+              <th class="py-3.5 px-4">Producto</th>
+              <th class="py-3.5 px-4 hidden md:table-cell">Descripción</th>
+              <th class="py-3.5 px-4">Precio</th>
+              <th class="py-3.5 px-4">Stock</th>
+              <th class="py-3.5 px-4 text-right">Acciones CRUD</th>
+            </tr>
+          </thead>
+          <tbody id="admin-products-tbody" class="divide-y divide-[#26262C] text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERO MINIMALISTA -->
+  <section class="relative overflow-hidden border-b border-[#26262C]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#141417] border border-[#26262C] text-xs text-[#D4AF37] font-medium mb-6">
+          <span>08:00 AM – 08:00 PM</span>
+          <span class="text-[#26262C]">•</span>
+          <span>Descanso 12:30 PM – 01:30 PM</span>
+        </div>
+        <h1 class="font-display text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
+          Estilo preciso, <span class="text-[#D4AF37]">sin filas</span> y a tu ritmo.
+        </h1>
+        <p class="mt-4 text-base sm:text-lg text-[#A1A1AA] max-w-2xl leading-relaxed">
+          Reserva uno de nuestros 30 cupos diarios (15 por barbero) en tiempo real y equipa tu rutina con productos profesionales de barbería.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-4">
+          <a href="#reservas" class="px-6 py-3.5 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-sm transition-all shadow-lg shadow-[#D4AF37]/10">
+            Reservar mi Corte
+          </a>
+          <a href="#tienda" class="px-6 py-3.5 rounded-xl bg-[#141417] hover:bg-[#1C1C21] border border-[#26262C] text-white font-medium text-sm transition-colors">
+            Ver Productos
+          </a>
+        </div>
+      </div>
+
+      <!-- MÉTRICAS DEL DÍA -->
+      <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="p-4 rounded-2xl bg-[#141417] border border-[#26262C]">
+          <p class="text-xs text-[#A1A1AA]">Capacidad Diaria</p>
+          <p class="font-display text-2xl font-bold text-white mt-1"><span id="stat-available-total">30</span> <span class="text-xs font-normal text-[#A1A1AA]">/ 30 libres</span></p>
+        </div>
+        <div class="p-4 rounded-2xl bg-[#141417] border border-[#26262C]">
+          <p class="text-xs text-[#A1A1AA]">Cupos Mateo (B1)</p>
+          <p class="font-display text-2xl font-bold text-white mt-1"><span id="stat-barber-1">15</span> <span class="text-xs font-normal text-[#A1A1AA]">/ 15 libres</span></p>
+        </div>
+        <div class="p-4 rounded-2xl bg-[#141417] border border-[#26262C]">
+          <p class="text-xs text-[#A1A1AA]">Cupos Lucas (B2)</p>
+          <p class="font-display text-2xl font-bold text-white mt-1"><span id="stat-barber-2">15</span> <span class="text-xs font-normal text-[#A1A1AA]">/ 15 libres</span></p>
+        </div>
+        <div class="p-4 rounded-2xl bg-[#141417] border border-[#26262C]">
+          <p class="text-xs text-[#A1A1AA]">Productos Disponibles</p>
+          <p class="font-display text-2xl font-bold text-[#D4AF37] mt-1"><span id="stat-products">0</span> <span class="text-xs font-normal text-[#A1A1AA]">artículos</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DE RESERVAS -->
+  <section id="reservas" class="py-16 border-b border-[#26262C]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">Agendamiento en Línea • /reservas</span>
+          <h2 class="font-display text-3xl font-bold text-white mt-1">Reserva tu Horario</h2>
+          <p class="text-sm text-[#A1A1AA] mt-1">15 turnos disponibles por barbero al día (8:00 AM – 8:00 PM) con 1 hora de descanso al mediodía.</p>
+        </div>
+
+        <div class="flex items-center gap-3 bg-[#141417] border border-[#26262C] p-2 rounded-xl">
+          <label for="booking-date" class="text-xs text-[#A1A1AA] pl-2">Fecha:</label>
+          <input type="date" id="booking-date" class="bg-[#0B0B0D] border border-[#26262C] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- PASO 1 Y 2: BARBERO + HORARIOS -->
+        <div class="lg:col-span-8 space-y-6">
+          <div class="p-6 rounded-2xl bg-[#141417] border border-[#26262C]">
+            <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] text-xs flex items-center justify-center font-bold">1</span>
+              Elige tu Barbero
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="barber-selector">
+              <button type="button" data-barber="Mateo" onclick="selectBarber('Mateo')" class="barber-card active text-left p-4 rounded-xl border border-[#D4AF37] bg-[#1C1C21] transition-all flex items-center justify-between">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-11 h-11 rounded-full bg-[#D4AF37] text-[#0B0B0D] font-bold flex items-center justify-center text-sm">MT</div>
+                  <div>
+                    <p class="font-semibold text-white">Mateo</p>
+                    <p class="text-xs text-[#A1A1AA]">Fade &amp; Diseño Urbano</p>
+                  </div>
+                </div>
+                <span id="badge-Mateo" class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#0B0B0D] text-[#D4AF37] border border-[#26262C]">15 libres</span>
+              </button>
+
+              <button type="button" data-barber="Lucas" onclick="selectBarber('Lucas')" class="barber-card text-left p-4 rounded-xl border border-[#26262C] bg-[#0B0B0D] hover:border-[#3f3f46] transition-all flex items-center justify-between">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-11 h-11 rounded-full bg-[#26262C] text-white font-bold flex items-center justify-center text-sm">LC</div>
+                  <div>
+                    <p class="font-semibold text-white">Lucas</p>
+                    <p class="text-xs text-[#A1A1AA]">Clásico, Tijera &amp; Barba</p>
+                  </div>
+                </div>
+                <span id="badge-Lucas" class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#141417] text-[#A1A1AA] border border-[#26262C]">15 libres</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-[#141417] border border-[#26262C]">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] text-xs flex items-center justify-center font-bold">2</span>
+                Selecciona una Hora Disponible (<span id="selected-barber-label" class="text-[#D4AF37]">Mateo</span>)
+              </h3>
+              <div class="flex items-center gap-3 text-[11px] text-[#A1A1AA]">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#0B0B0D] border border-[#26262C]"></span> Disponible</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#D4AF37]"></span> Seleccionado</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-950/60 border border-red-900/50"></span> Ocupado</span>
+              </div>
+            </div>
+
+            <div id="time-slots-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
+          </div>
+        </div>
+
+        <!-- PASO 3: FORMULARIO DE CONFIRMACIÓN -->
+        <div class="lg:col-span-4">
+          <form id="booking-form" onsubmit="handleBookingSubmit(event)" class="p-6 rounded-2xl bg-[#141417] border border-[#26262C] sticky top-24 space-y-4">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] text-xs flex items-center justify-center font-bold">3</span>
+              Completa tu Reserva
+            </h3>
+
+            <div class="p-3.5 rounded-xl bg-[#0B0B0D] border border-[#26262C] space-y-1.5 text-xs">
+              <div class="flex justify-between">
+                <span class="text-[#A1A1AA]">Barbero:</span>
+                <span id="summary-barber" class="font-semibold text-white">Mateo</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#A1A1AA]">Fecha:</span>
+                <span id="summary-date" class="font-semibold text-white">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#A1A1AA]">Hora:</span>
+                <span id="summary-time" class="font-semibold text-[#D4AF37]">Selecciona un horario</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-[#A1A1AA] mb-1">Tu Nombre Completo (name) *</label>
+              <input type="text" id="client-name" required placeholder="Ej. Carlos Mendoza" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white placeholder-[#52525B] focus:outline-none focus:border-[#D4AF37]" />
+            </div>
+
+            <button type="submit" id="btn-submit-booking" class="w-full py-3 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] disabled:opacity-40 disabled:cursor-not-allowed text-[#0B0B0D] font-semibold text-sm transition-all">
+              Confirmar Reserva
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- AGENDA DEL DÍA -->
+      <div id="agenda-dia" class="mt-10 p-6 rounded-2xl bg-[#141417] border border-[#26262C]">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base font-semibold text-white">Turnos Reservados en /reservas (Fecha Seleccionada)</h3>
+            <p class="text-xs text-[#A1A1AA]">Sincronizado en tiempo real con tu recurso de reservas.</p>
+          </div>
+          <button onclick="fetchAllData()" class="text-xs px-3 py-1.5 rounded-lg bg-[#0B0B0D] border border-[#26262C] hover:border-[#D4AF37] text-[#A1A1AA] hover:text-white transition-colors">
+            ↻ Actualizar
+          </button>
+        </div>
+        <div id="bookings-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIENDA DE PRODUCTOS PARA EL CLIENTE -->
+  <section id="tienda" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">Grooming &amp; Styling • /Barberia</span>
+          <h2 class="font-display text-3xl font-bold text-white mt-1">Productos de Barbería</h2>
+          <p class="text-sm text-[#A1A1AA] mt-1">Explora los detalles de cada producto y agrégalos a tu pedido.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <input type="text" id="product-search" oninput="renderProducts()" placeholder="Buscar peine, minoxidil, cera..." class="w-full sm:w-64 px-3.5 py-2 rounded-xl bg-[#141417] border border-[#26262C] text-sm text-white placeholder-[#52525B] focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+      </div>
+
+      <div id="category-filters" class="flex flex-wrap items-center gap-2 mb-8"></div>
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-[#26262C] py-10 text-center text-xs text-[#A1A1AA]">
+    <p class="font-display font-bold text-white tracking-wider text-sm">BARBER SHOP</p>
+    <p class="mt-1">Atención de 08:00 AM a 08:00 PM • Receso 12:30 PM – 01:30 PM • 30 Cortes Diarios</p>
+  </footer>
+
+  <!-- MODAL LOGIN ADMINISTRADOR -->
+  <div id="admin-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-[#141417] border border-[#26262C] p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-display text-lg font-bold text-white">Acceso Administrador</h3>
+          <p class="text-xs text-[#A1A1AA]">Ingresa tus credenciales de dueño</p>
+        </div>
+        <button onclick="closeLoginModal()" class="text-[#A1A1AA] hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">Correo electrónico</label>
+          <input type="email" id="admin-email" required placeholder="admin@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">Contraseña</label>
+          <input type="password" id="admin-password" required placeholder="•••••" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+        <p id="login-error-msg" class="hidden text-xs text-red-400">Usuario o contraseña incorrectos.</p>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-sm transition-colors">
+          Iniciar Sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL VER MÁS DETALLES DEL PRODUCTO -->
+  <div id="product-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-[#141417] border border-[#26262C] overflow-hidden shadow-2xl">
+      <div class="relative aspect-video bg-[#0B0B0D] flex items-center justify-center">
+        <img id="detail-img" src="" alt="" class="w-full h-full object-cover" />
+        <button onclick="closeDetailModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-[#0B0B0D]/80 text-white hover:text-[#D4AF37] flex items-center justify-center text-lg">&times;</button>
+        <span id="detail-category" class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-[#0B0B0D]/85 text-xs font-medium text-[#D4AF37] border border-[#26262C]"></span>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span id="detail-id" class="text-[11px] uppercase tracking-wider text-[#A1A1AA]"></span>
+            <h3 id="detail-name" class="font-display text-xl font-bold text-white mt-0.5"></h3>
+          </div>
+          <span id="detail-price" class="font-display text-2xl font-extrabold text-[#D4AF37]"></span>
+        </div>
+
+        <p id="detail-description" class="text-sm text-[#A1A1AA] leading-relaxed"></p>
+
+        <div class="pt-3 border-t border-[#26262C] flex items-center justify-between">
+          <span class="text-xs text-[#A1A1AA]">Disponibilidad: <strong id="detail-stock" class="text-white"></strong></span>
+          <div class="flex items-center gap-2">
+            <button onclick="closeDetailModal()" class="px-4 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-xs text-[#A1A1AA] hover:text-white">Cerrar</button>
+            <button id="detail-add-btn" class="px-5 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-xs">+ Añadir al Carrito</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL AGREGAR / EDITAR PRODUCTO -->
+  <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="w-full max-w-md rounded-2xl bg-[#141417] border border-[#26262C] p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-product-title" class="font-display text-lg font-bold text-white">Nuevo Producto</h3>
+        <button onclick="closeProductModal()" class="text-[#A1A1AA] hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <form id="product-form" onsubmit="handleProductSubmit(event)" class="space-y-3.5">
+        <input type="hidden" id="prod-id" />
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">Nombre del Producto (name) *</label>
+          <input type="text" id="prod-name" required placeholder="Ej. Polvo Texturizador Mate" class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-[#A1A1AA] mb-1">Precio (Bs)</label>
+            <input type="number" step="0.01" id="prod-price" placeholder="85.00" class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+          </div>
+          <div>
+            <label class="block text-xs text-[#A1A1AA] mb-1">Stock</label>
+            <input type="number" id="prod-stock" placeholder="12" class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">Categoría</label>
+          <input type="text" id="prod-category" placeholder="Ej. Fijación, Barba, Peines" class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">URL de Imagen (avatar)</label>
+          <input type="url" id="prod-image" placeholder="https://..." class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+        </div>
+        <div>
+          <label class="block text-xs text-[#A1A1AA] mb-1">Descripción (Description) *</label>
+          <textarea id="prod-description" rows="3" required placeholder="Detalles completos del producto..." class="w-full px-3.5 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-sm text-white focus:outline-none focus:border-[#D4AF37]"></textarea>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 rounded-xl bg-[#0B0B0D] border border-[#26262C] text-xs text-[#A1A1AA] hover:text-white">Cancelar</button>
+          <button type="submit" id="btn-save-product" class="px-5 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-xs">Guardar en MockAPI</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRAWER CARRITO DE COMPRAS -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 hidden justify-end bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-md bg-[#141417] border-l border-[#26262C] h-full flex flex-col justify-between p-6">
+      <div>
+        <div class="flex items-center justify-between pb-4 border-b border-[#26262C]">
+          <h3 class="font-display text-lg font-bold text-white">Tu Carrito</h3>
+          <button onclick="toggleCartDrawer(false)" class="text-[#A1A1AA] hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+        <div id="cart-items" class="mt-4 space-y-3 max-h-[65vh] overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="pt-4 border-t border-[#26262C] space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-[#A1A1AA]">Total estimado</span>
+          <span id="cart-total" class="font-display text-xl font-bold text-[#D4AF37]">Bs 0.00</span>
+        </div>
+        <button onclick="checkoutCart()" class="w-full py-3 rounded-xl bg-[#D4AF37] hover:bg-[#e0bc46] text-[#0B0B0D] font-semibold text-sm transition-colors">
+          Finalizar Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-3 rounded-xl bg-[#1C1C21] border border-[#D4AF37]/50 text-sm text-white shadow-xl flex items-center gap-2.5">
+    <span class="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+    <span id="toast-message">Listo</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
